@@ -1,0 +1,26 @@
+{
+  "name": "kalabox-plugin-drush",
+  "description": "A nice drush plugin you can add to your app so you can do lots of fun drush things.",
+  "keywords": [
+    "docker",
+    "kalabox",
+    "drupal"
+  ],
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kalabox/kalabox-plugin-drush"
+  },
+  "bugs": {
+    "email": "mike@kalamuna.com",
+    "url": "http://github.com/kalabox/kalabox-plugin-drush"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-bump": "0.0.16",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-jscs": "~0.8.1",
+    "jshint-stylish": "~1.0.0",
+    "matchdep": "^0.3.0"
+  }
+}

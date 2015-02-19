@@ -159,13 +159,13 @@ module.exports = function(argv, app, events, engine, tasks) {
             [
               'sed',
               '-i',
-              's/\'host\'.*/\'host\' => \'" + app.domain + "\',/g',
+              's/\'host\'.*/\'host\' => \'' + app.domain + '\',/g',
               '/src/config/drush/aliases.drushrc.php'
             ],
             [
               'sed',
               '-i',
-              's/aliases\\[\'.*/aliases[\'" + app.name + "\'] = array(/g',
+              's/aliases\\[\'.*/aliases[\'' + app.name + '\'] = array(/g',
               '/src/config/drush/local.aliases.drushrc.php'
             ],
             [

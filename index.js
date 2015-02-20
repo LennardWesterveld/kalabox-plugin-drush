@@ -68,8 +68,10 @@ module.exports = function(argv, app, events, engine, tasks) {
     var dst = path.resolve(drushPath, app.domain + '.aliases.drushrc.php');
 
     // Create the symlink
-    if (!fs.existsSync(dst)) {
-      fs.symlinkSync(src, dst);
+    if (process.platform !== 'win32') {
+      if (!fs.existsSync(dst)) {
+        fs.symlinkSync(src, dst);
+      }
     }
   };
 
@@ -104,16 +106,6 @@ module.exports = function(argv, app, events, engine, tasks) {
    **/
   var runDrushCMD = function(cmd, opts, done) {
     // @todo: needs to come from a DEEPER PLACE
-    var home = app.config.home;
-    var appDir = app.root;
-    if (process.platform === 'win32') {
-      home = app.config.home.replace(/\\/g, '/').replace('C:/', '/c/');
-      appDir = app.root.replace(/\\/g, '/').replace('C:/', '/c/');
-    }
-    else if (process.platform === 'linux')  {
-      home = app.config.home.replace('/home', '/Users');
-      appDir = app.root.replace('/home', '/Users');
-    }
     engine.run(
       'kalabox/drush:stable',
       cmd,
@@ -131,8 +123,8 @@ module.exports = function(argv, app, events, engine, tasks) {
       },
       {
         Binds: [
-          path.join(home, '.ssh') + ':/ssh:rw',
-          appDir + ':/src:rw'
+          app.config.homeBind + ':/ssh:rw',
+          app.rootBind + ':/src:rw'
         ]
       },
       done
@@ -202,7 +194,7 @@ module.exports = function(argv, app, events, engine, tasks) {
                 'Env': ['APPDOMAIN=' + app.domain]
               },
               {
-                Binds: [app.root + ':/src:rw']
+                Binds: [app.rootBind + ':/src:rw']
               },
               function(err) {
                 if (err) {

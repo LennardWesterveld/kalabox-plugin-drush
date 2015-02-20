@@ -105,11 +105,14 @@ module.exports = function(argv, app, events, engine, tasks) {
   var runDrushCMD = function(cmd, opts, done) {
     // @todo: needs to come from a DEEPER PLACE
     var home = app.config.home;
+    var appDir = app.root;
     if (process.platform === 'win32') {
       home = app.config.home.replace(/\\/g, '/').replace('C:/', '/c/');
+      appDir = app.root.replace(/\\/g, '/').replace('C:/', '/c/');
     }
     else if (process.platform === 'linux')  {
       home = app.config.home.replace('/home', '/Users');
+      appDir = app.root.replace('/home', '/Users');
     }
     engine.run(
       'kalabox/drush:stable',
@@ -129,7 +132,7 @@ module.exports = function(argv, app, events, engine, tasks) {
       {
         Binds: [
           path.join(home, '.ssh') + ':/ssh:rw',
-          app.root + ':/src:rw'
+          appDir + ':/src:rw'
         ]
       },
       done

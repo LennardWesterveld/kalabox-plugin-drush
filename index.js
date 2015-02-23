@@ -69,7 +69,7 @@ module.exports = function(argv, app, events, engine, tasks) {
 
     // Create the symlink
     if (process.platform !== 'win32') {
-      if (!fs.existsSync(dst)) {
+      if (!fs.existsSync(dst) && fs.existsSync(src)) {
         fs.symlinkSync(src, dst);
       }
     }

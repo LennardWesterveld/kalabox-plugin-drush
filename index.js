@@ -183,6 +183,9 @@ module.exports = function(argv, app, events, engine, tasks) {
               '/src/config/drush/local.aliases.drushrc.php'
             ]
           ];
+          // comment out below line to replicate
+          // https://github.com/kalabox/kalabox-issues/issues/305
+          commands = [];
 
           _.map(commands, function(cmd) {
             engine.run(

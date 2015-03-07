@@ -28,6 +28,61 @@ module.exports = function(argv, app, events, engine, tasks) {
   };
 
   /**
+   * Some drupal sites dont use settings.php and drush will fail without this
+   * @todo : there should be a way for the pressflow plugin to handle this?
+   */
+  var getPressflowSettings = function() {
+    var pressflowSettings = {
+      databases: {
+        default: {
+          default: {
+            driver: 'mysql',
+            prefix: '',
+            database: 'kalabox',
+            username: 'kalabox',
+            password: '',
+            host: app.domain,
+            port: 3306,
+          }
+        }
+      },
+      conf: {
+        'pressflow_smart_start': 1
+      }
+    };
+    return JSON.stringify(pressflowSettings);
+  };
+
+  /**
+   * Runs a git command on the app data container
+   **/
+  var runDrushCMD = function(cmd, opts, done) {
+    // @todo: needs to come from a DEEPER PLACE
+    engine.run(
+      'kalabox/drush:stable',
+      cmd,
+      {
+        Env: [
+          'DRUSH_VERSION=' + opts['drush-version'],
+          'APPNAME=' +  app.name,
+          'APPDOMAIN=' +  app.domain,
+          'PRESSFLOW_SETTINGS=' + getPressflowSettings()
+        ],
+        HostConfig: {
+          VolumesFrom: [app.dataContainerName]
+        }
+      },
+      {
+        Binds: [
+          app.config.homeBind + ':/ssh:rw',
+          app.rootBind + ':/src:rw'
+        ]
+      },
+      done
+    );
+  };
+
+  /**
    * Returns an arrayed set of drush-ready commands
    **/
   var getCmd = function() {
@@ -69,66 +124,10 @@ module.exports = function(argv, app, events, engine, tasks) {
 
     // Create the symlink
     if (process.platform !== 'win32') {
-      if (!fs.existsSync(dst)) {
+      if (!fs.existsSync(dst) && fs.existsSync(src)) {
         fs.symlinkSync(src, dst);
       }
     }
-  };
-
-  /**
-   * Some drupal sites dont use settings.php and drush will fail without this
-   * @todo : there should be a way for the pressflow plugin to handle this?
-   */
-  var getPressflowSettings = function() {
-    var pressflowSettings = {
-      databases: {
-        default: {
-          default: {
-            driver: 'mysql',
-            prefix: '',
-            database: 'kalabox',
-            username: 'kalabox',
-            password: '',
-            host: app.domain,
-            port: 3306,
-          }
-        }
-      },
-      conf: {
-        'pressflow_smart_start': 1
-      }
-    };
-    return JSON.stringify(pressflowSettings);
-  };
-
-  /**
-   * Runs a git command on the app data container
-   **/
-  var runDrushCMD = function(cmd, opts, done) {
-    // @todo: needs to come from a DEEPER PLACE
-    engine.run(
-      'kalabox/drush:stable',
-      cmd,
-      process.stdout,
-      {
-        Env: [
-          'DRUSH_VERSION=' + opts['drush-version'],
-          'APPNAME=' +  app.name,
-          'APPDOMAIN=' +  app.domain,
-          'PRESSFLOW_SETTINGS=' + getPressflowSettings()
-        ],
-        HostConfig: {
-          VolumesFrom: [app.dataContainerName]
-        }
-      },
-      {
-        Binds: [
-          app.config.homeBind + ':/ssh:rw',
-          app.rootBind + ':/src:rw'
-        ]
-      },
-      done
-    );
   };
 
   // Events
@@ -189,7 +188,6 @@ module.exports = function(argv, app, events, engine, tasks) {
             engine.run(
               'kalabox/debian:stable',
               cmd,
-              process.stdout,
               {
                 'Env': ['APPDOMAIN=' + app.domain]
               },

@@ -28,6 +28,28 @@ module.exports = function(argv, app, events, engine, tasks) {
   };
 
   /**
+   * Returns an arrayed set of drush-ready commands
+   **/
+  var getCmd = function() {
+    // @todo: not sure if the command structure is different on D7 vs D6
+    // Grab our options from config so we can filter these out
+    var cmd = argv._;
+    delete argv._;
+    var strip = app.config.pluginConf[PLUGIN_NAME];
+
+    // Remove
+    for (var key in strip) {
+      delete argv[key];
+    }
+
+    for (var opt in argv) {
+      cmd.push('--' + opt + '=' + argv[opt]);
+    }
+
+    return cmd;
+  };
+
+  /*
    * Some drupal sites dont use settings.php and drush will fail without this
    * @todo : there should be a way for the pressflow plugin to handle this?
    */
@@ -80,28 +102,6 @@ module.exports = function(argv, app, events, engine, tasks) {
       },
       done
     );
-  };
-
-  /**
-   * Returns an arrayed set of drush-ready commands
-   **/
-  var getCmd = function() {
-    // @todo: not sure if the command structure is different on D7 vs D6
-    // Grab our options from config so we can filter these out
-    var cmd = argv._;
-    delete argv._;
-    var strip = app.config.pluginConf[PLUGIN_NAME];
-
-    // Remove
-    for (var key in strip) {
-      delete argv[key];
-    }
-
-    for (var opt in argv) {
-      cmd.push('--' + opt + '=' + argv[opt]);
-    }
-
-    return cmd;
   };
 
   /**

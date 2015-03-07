@@ -49,33 +49,7 @@ module.exports = function(argv, app, events, engine, tasks) {
     return cmd;
   };
 
-  /**
-   * Create a symlink from the local.aliases.drushrc.php file to ~/.drush/kalabox/<appname>.aliases.drushrc.php
-   **/
-  var copyLocalAlias = function() {
-    var home =
-      process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
-    var drushPath = path.resolve(home, '.drush');
-    // Create ~/.drush dir if it doesn't exist.
-    if (!fs.existsSync(drushPath)) {
-      fs.mkdirSync(drushPath);
-    }
-
-    // Define the paths
-    var src = path.resolve(
-      app.root, 'config', 'drush', 'local.aliases.drushrc.php'
-    );
-    var dst = path.resolve(drushPath, app.domain + '.aliases.drushrc.php');
-
-    // Create the symlink
-    if (process.platform !== 'win32') {
-      if (!fs.existsSync(dst) && fs.existsSync(src)) {
-        fs.symlinkSync(src, dst);
-      }
-    }
-  };
-
-  /**
+  /*
    * Some drupal sites dont use settings.php and drush will fail without this
    * @todo : there should be a way for the pressflow plugin to handle this?
    */
@@ -105,11 +79,9 @@ module.exports = function(argv, app, events, engine, tasks) {
    * Runs a git command on the app data container
    **/
   var runDrushCMD = function(cmd, opts, done) {
-    // @todo: needs to come from a DEEPER PLACE
     engine.run(
       'kalabox/drush:stable',
       cmd,
-      process.stdout,
       {
         Env: [
           'DRUSH_VERSION=' + opts['drush-version'],
@@ -129,6 +101,32 @@ module.exports = function(argv, app, events, engine, tasks) {
       },
       done
     );
+  };
+
+  /**
+   * Create a symlink from the local.aliases.drushrc.php file to ~/.drush/kalabox/<appname>.aliases.drushrc.php
+   **/
+  var copyLocalAlias = function() {
+    var home =
+      process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
+    var drushPath = path.resolve(home, '.drush');
+    // Create ~/.drush dir if it doesn't exist.
+    if (!fs.existsSync(drushPath)) {
+      fs.mkdirSync(drushPath);
+    }
+
+    // Define the paths
+    var src = path.resolve(
+      app.root, 'config', 'drush', 'local.aliases.drushrc.php'
+    );
+    var dst = path.resolve(drushPath, app.domain + '.aliases.drushrc.php');
+
+    // Create the symlink
+    if (process.platform !== 'win32') {
+      if (!fs.existsSync(dst) && fs.existsSync(src)) {
+        fs.symlinkSync(src, dst);
+      }
+    }
   };
 
   // Events
@@ -186,10 +184,9 @@ module.exports = function(argv, app, events, engine, tasks) {
           ];
 
           _.map(commands, function(cmd) {
-            engine.run(
+            engine.queryString(
               'kalabox/debian:stable',
               cmd,
-              process.stdout,
               {
                 'Env': ['APPDOMAIN=' + app.domain]
               },

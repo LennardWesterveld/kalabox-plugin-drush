@@ -79,7 +79,6 @@ module.exports = function(argv, app, events, engine, tasks) {
    * Runs a git command on the app data container
    **/
   var runDrushCMD = function(cmd, opts, done) {
-    // @todo: needs to come from a DEEPER PLACE
     engine.run(
       'kalabox/drush:stable',
       cmd,
@@ -183,12 +182,9 @@ module.exports = function(argv, app, events, engine, tasks) {
               '/src/config/drush/local.aliases.drushrc.php'
             ]
           ];
-          // comment out below line to replicate
-          // https://github.com/kalabox/kalabox-issues/issues/305
-          commands = [];
 
           _.map(commands, function(cmd) {
-            engine.run(
+            engine.queryString(
               'kalabox/debian:stable',
               cmd,
               {

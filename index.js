@@ -171,7 +171,7 @@ module.exports = function(argv, app, events, engine, tasks) {
               'sed',
               '-i',
               's@\'root\'.*@\'root\' => \'' +
-              app.config.codeRoot, app.name + '\',@g',
+              app.config.codeRoot + '\',@g',
               '/src/config/drush/local.aliases.drushrc.php'
             ],
             [

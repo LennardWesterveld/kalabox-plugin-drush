@@ -9,6 +9,7 @@ var _ = require('lodash');
 var PLUGIN_NAME = 'kalabox-plugin-drush';
 
 module.exports = function(kbox, app) {
+
   var argv = kbox.core.deps.lookup('argv');
   var events = kbox.core.events;
   var engine = kbox.engine;
@@ -21,7 +22,6 @@ module.exports = function(kbox, app) {
   var getOpts = function() {
     // Grab our options from config
     var opts = app.config.pluginConf[PLUGIN_NAME];
-
     // Override any config coming in on the CLI
     for (var key in opts) {
       if (argv[key]) {
@@ -53,37 +53,21 @@ module.exports = function(kbox, app) {
     return cmd;
   };
 
-  /*
-   * Some drupal sites dont use settings.php and drush will fail without this
-   * @todo : there should be a way for the pressflow plugin to handle this?
-   */
-  var getPressflowSettings = function() {
-    var pressflowSettings = {
-      databases: {
-        default: {
-          default: {
-            driver: 'mysql',
-            prefix: '',
-            database: 'kalabox',
-            username: 'kalabox',
-            password: '',
-            host: app.domain,
-            port: 3306,
-          }
-        }
-      },
-      conf: {
-        'pressflow_smart_start': 1
+  // This only will work if you have plugin conf for kalabox-plugin-dbenv
+  var getAppSettings = function() {
+    var settings = {};
+    if (app.config.pluginConf['kalabox-plugin-dbenv']) {
+      if (app.config.pluginConf['kalabox-plugin-dbenv'].settings) {
+        settings = app.config.pluginConf['kalabox-plugin-dbenv'].settings;
       }
-    };
-    return JSON.stringify(pressflowSettings);
+    }
+    return JSON.stringify(settings);
   };
 
   /**
    * Runs a git command on the app data container
    **/
   var runDrushCMD = function(cmd, opts, done) {
-    // @todo: needs to come from a DEEPER PLACE
     engine.run(
       'kalabox/drush:stable',
       cmd,
@@ -92,7 +76,8 @@ module.exports = function(kbox, app) {
           'DRUSH_VERSION=' + opts['drush-version'],
           'APPNAME=' +  app.name,
           'APPDOMAIN=' +  app.domain,
-          'PRESSFLOW_SETTINGS=' + getPressflowSettings()
+          'PRESSFLOW_SETTINGS=' + getAppSettings(),
+          'BACKDROP_SETTINGS=' + getAppSettings()
         ],
         HostConfig: {
           VolumesFrom: [app.dataContainerName]
@@ -108,36 +93,20 @@ module.exports = function(kbox, app) {
     );
   };
 
-  /**
-   * Create a symlink from the local.aliases.drushrc.php file to ~/.drush/kalabox/<appname>.aliases.drushrc.php
-   **/
-  var copyLocalAlias = function() {
-    var home =
-      process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
-    var drushPath = path.resolve(home, '.drush');
-    // Create ~/.drush dir if it doesn't exist.
-    if (!fs.existsSync(drushPath)) {
-      fs.mkdirSync(drushPath);
-    }
-
-    // Define the paths
-    var src = path.resolve(
-      app.root, 'config', 'drush', 'local.aliases.drushrc.php'
-    );
-    var dst = path.resolve(drushPath, app.domain + '.aliases.drushrc.php');
-
-    // Create the symlink
-    if (process.platform !== 'win32') {
-      if (!fs.existsSync(dst) && fs.existsSync(src)) {
-        fs.symlinkSync(src, dst);
-      }
-    }
-  };
-
   // Events
-  // Install the util container for our things
+  // Install the drush container for our things
   events.on('post-install', function(app, done) {
-    engine.build({name: 'kalabox/drush:stable'}, done);
+    // If profile is set to dev build from source
+    var opts = {
+      name: 'kalabox/drush:stable',
+      build: false,
+      src: ''
+    };
+    if (globalConfig.profile === 'dev') {
+      opts.build = true;
+      opts.src = path.resolve(__dirname, 'dockerfiles', 'drush', 'Dockerfile');
+    }
+    engine.build(opts, done);
   });
 
   // Updates kalabox aliases when app is started.
@@ -153,64 +122,36 @@ module.exports = function(kbox, app) {
         var key = '3306/tcp';
         if (data && data.NetworkSettings.Ports[key]) {
           var port = data.NetworkSettings.Ports[key][0].HostPort;
-          var commands = [
-            [
-              'sed',
-              '-i',
-              's/\'host\'.*/\'host\' => \'' + app.domain + '\',/g',
-              '/src/config/drush/aliases.drushrc.php'
-            ],
-            [
-              'sed',
-              '-i',
-              's/\'uri\'.*/\'uri\' => \'' + app.domain + '\',/g',
-              '/src/config/drush/local.aliases.drushrc.php'
-            ],
-            [
-              'sed',
-              '-i',
-              's/aliases\\[\'.*/aliases[\'' + app.name + '\'] = array(/g',
-              '/src/config/drush/local.aliases.drushrc.php'
-            ],
-            [
-              'sed',
-              '-i',
-              's@\'root\'.*@\'root\' => \'' +
-              path.join(app.config.codeRoot, app.name) + '\',@g',
-              '/src/config/drush/local.aliases.drushrc.php'
-            ],
-            [
-              'sed',
-              '-i',
-              's%\'db-url.*%\'db-url\' => \'mysql://kalabox@' + app.domain +
-              ':' + port + '/kalabox\',%g',
-              '/src/config/drush/local.aliases.drushrc.php'
-            ]
+          var cmd = [
+            'sed',
+            '-i',
+            's/\'host\'.*/\'host\' => \'' + app.domain + '\',/g',
+            '/src/config/drush/aliases.drushrc.php'
           ];
-          // comment out below line to replicate
-          // https://github.com/kalabox/kalabox-issues/issues/305
-          commands = [];
 
-          _.map(commands, function(cmd) {
-            engine.run(
-              'kalabox/debian:stable',
-              cmd,
-              {
-                'Env': ['APPDOMAIN=' + app.domain]
-              },
-              {
-                Binds: [app.rootBind + ':/src:rw']
-              },
-              function(err) {
+          engine.once(
+            'kalabox/debian:stable',
+            ['/bin/bash'],
+            {
+              'Env': ['APPDOMAIN=' + app.domain],
+            },
+            {
+              Binds: [app.rootBind + ':/src:rw']
+            },
+            function(container, done) {
+              engine.queryData(container.id, cmd, function(err, data) {
                 if (err) {
-                  console.log(err);
+                  done(err);
+                } else {
+                  done();
                 }
-              }
-            );
-          });
-          copyLocalAlias();
+              });
+            },
+            function(err) {
+              done(err);
+            }
+          );
         }
-        done();
       });
     }
   });

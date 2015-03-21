@@ -8,7 +8,11 @@ var _ = require('lodash');
 // "Constants"
 var PLUGIN_NAME = 'kalabox-plugin-drush';
 
-module.exports = function(argv, app, events, engine, tasks) {
+module.exports = function(kbox, app) {
+  var argv = kbox.core.deps.lookup('argv');
+  var events = kbox.core.events;
+  var engine = kbox.engine;
+  var tasks = kbox.core.tasks;
 
   // Helpers
   /**

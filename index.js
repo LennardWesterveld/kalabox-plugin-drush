@@ -11,6 +11,7 @@ var PLUGIN_NAME = 'kalabox-plugin-drush';
 module.exports = function(kbox, app) {
 
   var argv = kbox.core.deps.lookup('argv');
+  var globalConfig = kbox.core.deps.lookup('globalConfig');
   var events = kbox.core.events;
   var engine = kbox.engine;
   var tasks = kbox.core.tasks;

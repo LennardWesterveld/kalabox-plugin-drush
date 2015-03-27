@@ -6,6 +6,8 @@ FROM kalabox/debian:stable
 # Install Composer
 # Install some drushes
 RUN \
+  apt-get update -y
+RUN \
   apt-get install -y mysql-client php5-cli php5-dev php5-gd php5-mcrypt php5-mysqlnd sqlite git-core && apt-get clean && \
   curl -sS https://getcomposer.org/installer | php && \
   mv composer.phar /usr/local/bin/composer && \

@@ -14,7 +14,6 @@ module.exports = function(kbox) {
   var globalConfig = kbox.core.deps.lookup('globalConfig');
   var events = kbox.core.events;
   var engine = kbox.engine;
-  var tasks = kbox.core.tasks;
 
   kbox.whenApp(function(app) {
 
@@ -166,11 +165,15 @@ module.exports = function(kbox) {
 
     // Tasks
     // drush wrapper: kbox drush COMMAND
-    tasks.registerTask([app.name, 'drush'], function(done) {
-      var opts = getOpts();
-      var cmd = getCmd();
-      cmd.unshift('@dev');
-      runDrushCMD(cmd, opts, done);
+    kbox.tasks.add(function(task) {
+      task.path = [app.name, 'drush'];
+      task.description = 'Run drush commands.';
+      task.func = function(done) {
+        var opts = getOpts();
+        var cmd = getCmd();
+        cmd.unshift('@dev');
+        runDrushCMD(cmd, opts, done);
+      };
     });
 
   });

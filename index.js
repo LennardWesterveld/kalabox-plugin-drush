@@ -27,7 +27,7 @@ module.exports = function(kbox) {
       // Grab our options from config
       var defaults = app.config.pluginConf[PLUGIN_NAME];
       // Override any config coming in on the CLI
-      _.each(Object.keys(default), function(key) {
+      _.each(Object.keys(defaults), function(key) {
         if (_.has(options, key)) {
           defaults[key] = options[key];
         }

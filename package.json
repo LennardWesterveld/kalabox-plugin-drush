@@ -16,7 +16,8 @@
     "url": "http://github.com/kalabox/kalabox-plugin-drush"
   },
   "dependencies": {
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "yargs": "^3.7.1"
   },
   "devDependencies": {
     "grunt": "^0.4.5",

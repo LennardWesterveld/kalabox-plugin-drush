@@ -10,10 +10,11 @@ var PLUGIN_NAME = 'kalabox-plugin-drush';
 
 module.exports = function(kbox) {
 
-  var argv = kbox.core.deps.lookup('argv');
   var globalConfig = kbox.core.deps.lookup('globalConfig');
   var events = kbox.core.events;
   var engine = kbox.engine;
+  var _ = require('lodash');
+  var yargs = require('yargs');
 
   kbox.whenApp(function(app) {
 
@@ -21,24 +22,26 @@ module.exports = function(kbox) {
     /**
      * Gets plugin conf from the appconfig or from CLI arg
      **/
-    var getOpts = function() {
+    var getOpts = function(parsedArgv) {
+      var options = parsedArgv;
       // Grab our options from config
-      var opts = app.config.pluginConf[PLUGIN_NAME];
+      var defaults = app.config.pluginConf[PLUGIN_NAME];
       // Override any config coming in on the CLI
-      for (var key in opts) {
-        if (argv[key]) {
-          opts[key] = argv[key];
+      _.each(Object.keys(default), function(key) {
+        if (_.has(options, key)) {
+          defaults[key] = options[key];
         }
-      }
-      return opts;
+      });
+      return defaults;
     };
 
     /**
      * Returns an arrayed set of drush-ready commands
      **/
-    var getCmd = function() {
+    var getCmd = function(parsedArgv) {
       // @todo: not sure if the command structure is different on D7 vs D6
       // Grab our options from config so we can filter these out
+      var argv = parsedArgv;
       var cmd = argv._;
       delete argv._;
       var strip = app.config.pluginConf[PLUGIN_NAME];
@@ -168,9 +171,11 @@ module.exports = function(kbox) {
     kbox.tasks.add(function(task) {
       task.path = [app.name, 'drush'];
       task.description = 'Run drush commands.';
+      task.kind = 'delegate';
       task.func = function(done) {
-        var opts = getOpts();
-        var cmd = getCmd();
+        var parsedArgv = yargs.parse(this.argv);
+        var opts = getOpts(parsedArgv);
+        var cmd = getCmd(parsedArgv);
         cmd.unshift('@dev');
         runDrushCMD(cmd, opts, done);
       };

@@ -13,8 +13,6 @@ module.exports = function(kbox) {
   var globalConfig = kbox.core.deps.lookup('globalConfig');
   var events = kbox.core.events;
   var engine = kbox.engine;
-  var _ = require('lodash');
-  var yargs = require('yargs');
 
   kbox.whenApp(function(app) {
 
@@ -22,8 +20,7 @@ module.exports = function(kbox) {
     /**
      * Gets plugin conf from the appconfig or from CLI arg
      **/
-    var getOpts = function(parsedArgv) {
-      var options = parsedArgv;
+    var getOpts = function(options) {
       // Grab our options from config
       var defaults = app.config.pluginConf[PLUGIN_NAME];
       // Override any config coming in on the CLI
@@ -33,29 +30,6 @@ module.exports = function(kbox) {
         }
       });
       return defaults;
-    };
-
-    /**
-     * Returns an arrayed set of drush-ready commands
-     **/
-    var getCmd = function(parsedArgv) {
-      // @todo: not sure if the command structure is different on D7 vs D6
-      // Grab our options from config so we can filter these out
-      var argv = parsedArgv;
-      var cmd = argv._;
-      delete argv._;
-      var strip = app.config.pluginConf[PLUGIN_NAME];
-
-      // Remove
-      for (var key in strip) {
-        delete argv[key];
-      }
-
-      for (var opt in argv) {
-        cmd.push('--' + opt + '=' + argv[opt]);
-      }
-
-      return cmd;
     };
 
     // This only will work if you have plugin conf for kalabox-plugin-dbenv
@@ -173,9 +147,8 @@ module.exports = function(kbox) {
       task.description = 'Run drush commands.';
       task.kind = 'delegate';
       task.func = function(done) {
-        var parsedArgv = yargs.parse(this.argv);
-        var opts = getOpts(parsedArgv);
-        var cmd = getCmd(parsedArgv);
+        var opts = getOpts(this.options);
+        var cmd = this.payload;
         cmd.unshift('@dev');
         runDrushCMD(cmd, opts, done);
       };

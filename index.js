@@ -48,7 +48,7 @@ module.exports = function(kbox) {
      **/
     var runDrushCMD = function(cmd, opts, done) {
       engine.run(
-        'kalabox/drush:stable',
+        'drush',
         cmd,
         {
           Env: [
@@ -77,19 +77,9 @@ module.exports = function(kbox) {
     events.on('post-install', function(app, done) {
       // If profile is set to dev build from source
       var opts = {
-        name: 'kalabox/drush:stable',
-        build: false,
-        src: ''
+        name: 'drush',
+        srcRoot: path.resolve(__dirname)
       };
-      if (globalConfig.profile === 'dev') {
-        opts.build = true;
-        opts.src = path.resolve(
-          __dirname,
-          'dockerfiles',
-          'drush',
-          'Dockerfile'
-        );
-      }
       engine.build(opts, done);
     });
 
@@ -114,7 +104,7 @@ module.exports = function(kbox) {
             ];
 
             engine.once(
-              'kalabox/debian:stable',
+              'debian',
               ['/bin/bash'],
               {
                 'Env': ['APPDOMAIN=' + app.domain],

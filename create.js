@@ -1,18 +1,16 @@
 'use strict';
 
-module.exports = function(kbox) {
+var taskOpts = require('./tasks');
+
+module.exports = function(kbox, appName) {
 
   var deps = kbox.core.deps;
 
   // Add an option
-  kbox.create.add('drupal7', {
+  kbox.create.add(appName, {
     option: {
       name: 'drush-version',
-      task: {
-        name: 'drush-version',
-        kind: 'string',
-        description: 'The version of drush that you want.',
-      },
+      task: taskOpts.drushVersion,
       properties: {
         message: 'Drush version'.green,
         required: false,

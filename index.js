@@ -36,11 +36,28 @@ module.exports = function(kbox) {
     // This only will work if you have plugin conf for kalabox-plugin-dbenv
     var getAppSettings = function() {
       var settings = {};
-      if (app.config.pluginConf['kalabox-plugin-dbenv']) {
-        if (app.config.pluginConf['kalabox-plugin-dbenv'].settings) {
-          settings = app.config.pluginConf['kalabox-plugin-dbenv'].settings;
+      var defaultSettings = {
+        databases: {
+          default: {
+            default: {
+              driver: 'mysql',
+              prefix: '',
+              database: 'kalabox',
+              username: 'kalabox',
+              password: '',
+              host: app.domain,
+              port: 3306
+            }
+          }
+        },
+        conf: {}
+      };
+      if (app.config.pluginConf[PLUGIN_NAME]) {
+        if (app.config.pluginConf[PLUGIN_NAME].settings) {
+          settings = app.config.pluginConf[PLUGIN_NAME].settings;
         }
       }
+      settings = _.merge({}, defaultSettings, settings);
       return JSON.stringify(settings);
     };
 

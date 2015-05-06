@@ -1,23 +1,29 @@
 'use strict';
 
 var taskOpts = require('./tasks');
+var _ = require('lodash');
 
-module.exports = function(kbox, appName) {
+module.exports = function(kbox, drupal, appName) {
 
-  var deps = kbox.core.deps;
+  var drushVersions = _.pluck(drupal, 'drush');
 
   // Add an option
   kbox.create.add(appName, {
     option: {
       name: 'drush-version',
       task: taskOpts.drushVersion,
-      properties: {
-        message: 'Drush version'.green,
-        required: false,
-        type: 'string',
-        validator: /drush(5|6|7)/,
-        warning: 'Answer must be drush plus a major version. ie "drush6".',
-        default: 'drush6'
+      inquire: {
+        type: 'list',
+        message: 'Major Drush version?',
+        default: function(answers) {
+          if (answers['drupal-version']) {
+            return drupal[answers['drupal-version']].drush;
+          }
+          else {
+            return '6';
+          }
+        },
+        choices: drushVersions
       },
       conf: {
         type: 'plugin',

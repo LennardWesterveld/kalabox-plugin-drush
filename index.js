@@ -83,7 +83,7 @@ module.exports = function(kbox) {
         {
           WorkingDir: workingDir,
           Env: [
-            'DRUSH_VERSION=' + opts['drush-version'],
+            'DRUSH_VERSION=drush' + opts['drush-version'],
             'APPNAME=' +  app.name,
             'APPDOMAIN=' +  app.domain,
             'PRESSFLOW_SETTINGS=' + getAppSettings(),

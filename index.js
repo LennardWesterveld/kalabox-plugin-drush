@@ -105,7 +105,7 @@ module.exports = function(kbox) {
             ];
 
             engine.once(
-              'debian',
+              'kalabox/debian:stable',
               ['/bin/bash'],
               {
                 'Env': ['APPDOMAIN=' + app.domain],

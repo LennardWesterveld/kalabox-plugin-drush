@@ -6,7 +6,6 @@ FROM kalabox/php-appserver:stable
 # Install Composer
 # Install some drushes
 RUN \
-  apt-get install -y git-core && \
   curl -sS https://getcomposer.org/installer | php && \
   mv composer.phar /usr/local/bin/composer && \
   ln -s /usr/local/bin/composer /usr/bin/composer && \

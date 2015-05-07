@@ -1,14 +1,12 @@
 # docker build -t kalabox/drush .
 
-FROM kalabox/debian:stable
+FROM kalabox/php-appserver:stable
 
 # Install dependencies
 # Install Composer
 # Install some drushes
 RUN \
-  apt-get update -y
-RUN \
-  apt-get install -y mysql-client php5-cli php5-dev php5-gd php5-mcrypt php5-mysqlnd sqlite git-core && apt-get clean && \
+  apt-get install -y git-core && \
   curl -sS https://getcomposer.org/installer | php && \
   mv composer.phar /usr/local/bin/composer && \
   ln -s /usr/local/bin/composer /usr/bin/composer && \
@@ -26,10 +24,12 @@ RUN \
 # Set up our kalabox specific stuff
 COPY kdrush /usr/local/bin/kdrush
 COPY ssh-config /root/.ssh/config
+
+ENV PHP_VERSION 5.4.36
+
 RUN \
   chmod +x /usr/local/bin/kdrush && \
   mkdir -p /root/.ssh && \
   ln -s /src/config/drush /root/.drush
 
-WORKDIR /data
 ENTRYPOINT ["/usr/local/bin/kdrush"]

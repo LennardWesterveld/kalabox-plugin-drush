@@ -1,6 +1,6 @@
 # docker build -t kalabox/drush .
 
-FROM kalabox/php-appserver:stable
+FROM kalabox/php-appserver:v0.7.0
 
 # Install dependencies
 # Install Composer

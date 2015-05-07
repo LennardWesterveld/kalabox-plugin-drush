@@ -33,39 +33,11 @@ module.exports = function(kbox) {
       return defaults;
     };
 
-    // This only will work if you have plugin conf for kalabox-plugin-dbenv
-    var getAppSettings = function() {
-      var settings = {};
-      var defaultSettings = {
-        databases: {
-          default: {
-            default: {
-              driver: 'mysql',
-              prefix: '',
-              database: 'kalabox',
-              username: 'kalabox',
-              password: '',
-              host: app.domain,
-              port: 3306
-            }
-          }
-        },
-        conf: {}
-      };
-      if (app.config.pluginConf[PLUGIN_NAME]) {
-        if (app.config.pluginConf[PLUGIN_NAME].settings) {
-          settings = app.config.pluginConf[PLUGIN_NAME].settings;
-        }
-      }
-      settings = _.merge({}, defaultSettings, settings);
-      return JSON.stringify(settings);
-    };
-
     /**
      * Runs a git command on the app data container
      **/
     var runDrushCMD = function(cmd, opts, done) {
-      // Run the git command in the correct directory in the container if the
+      // Run the drush command in the correct directory in the container if the
       // user is somewhere inside the code directory on the host side.
       // @todo: consider if this is better in the actual engine.run command
       // vs here.
@@ -76,6 +48,8 @@ module.exports = function(kbox) {
         workingDirExtra = cwd.replace(codeRoot, '');
       }
       var workingDir = '/data' + workingDirExtra;
+      var drushVersion = (opts['drush-version'] === 'backdrush') ?
+        'backdrush' : 'drush' + opts['drush-version'];
 
       engine.run(
         'drush',
@@ -83,11 +57,7 @@ module.exports = function(kbox) {
         {
           WorkingDir: workingDir,
           Env: [
-            'DRUSH_VERSION=drush' + opts['drush-version'],
-            'APPNAME=' +  app.name,
-            'APPDOMAIN=' +  app.domain,
-            'PRESSFLOW_SETTINGS=' + getAppSettings(),
-            'BACKDROP_SETTINGS=' + getAppSettings()
+            'DRUSH_VERSION=' + drushVersion
           ],
           HostConfig: {
             VolumesFrom: [app.dataContainerName]

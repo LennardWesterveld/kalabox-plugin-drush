@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # We need to do this for SSH add now as well
 eval `ssh-agent -s` > /dev/null
 ssh-add /ssh/.ssh/id_rsa > /dev/null
 
-phpbrew switch ${PHP_VERSION} > /dev/null
+source /root/.phpbrew/bashrc > /dev/null
+phpbrew -d switch ${PHP_VERSION} > /dev/null
 
 $DRUSH_VERSION "$@"

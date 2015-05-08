@@ -49,7 +49,6 @@ module.exports = function(kbox) {
       }
       var codeDir = globalConfig.codeDir;
       var workingDir = '/' + codeDir + workingDirExtra;
-      
       var drushVersion = (opts['drush-version'] === 'backdrush') ?
         'backdrush' : 'drush' + opts['drush-version'];
 

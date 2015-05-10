@@ -11,7 +11,7 @@ RUN \
   ln -s /usr/local/bin/composer /usr/bin/composer && \
   git clone --depth 1 --branch 5.11.0 https://github.com/drush-ops/drush.git /usr/local/src/drush5 && \
   git clone --depth 1 --branch 6.6.0 https://github.com/drush-ops/drush.git /usr/local/src/drush6 && \
-  git clone --depth 1 --branch 7.0.0-rc1 https://github.com/drush-ops/drush.git /usr/local/src/drush7 && \
+  git clone --depth 1 --branch 7.0.0-rc2 https://github.com/drush-ops/drush.git /usr/local/src/drush7 && \
   git clone --depth 1 --branch backdrush https://github.com/pirog/drush.git /usr/local/src/backdrush && \
   ln -s /usr/local/src/drush5/drush /usr/bin/drush5 && \
   ln -s /usr/local/src/drush6/drush /usr/bin/drush6 && \
@@ -24,7 +24,7 @@ RUN \
 COPY kdrush /usr/local/bin/kdrush
 COPY ssh-config /root/.ssh/config
 
-ENV PHP_VERSION 5.4.36
+ENV PHP_VERSION 5.4.40
 
 RUN \
   chmod +x /usr/local/bin/kdrush && \

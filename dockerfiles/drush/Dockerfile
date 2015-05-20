@@ -5,6 +5,8 @@ FROM kalabox/php-appserver:v0.7.0
 # Install dependencies
 # Install Composer
 # Install some drushes
+RUN apt-get install -y mysql-client postgresql-client-common sqlite
+
 RUN \
   curl -sS https://getcomposer.org/installer | php && \
   mv composer.phar /usr/local/bin/composer && \

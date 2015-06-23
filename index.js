@@ -71,12 +71,13 @@ module.exports = function(kbox) {
         .workingDir(workingDir)
         .env('DRUSH_VERSION', drushVersion)
         .volumeFrom(app.dataContainerName)
-        .bind(app.config.homeBind, '/ssh')
-        .bind(app.rootBind, 'src')
         .json();
 
       // Build start options.
-      var startOpts = {};
+      var startOpts = kbox.util.docker.StartOpts()
+        .bind(app.config.homeBind, '/ssh')
+        .bind(app.rootBind, '/src')
+        .json();
 
       // Perform a container run.
       return engine.run(image, cmd, createOpts, startOpts)
@@ -118,13 +119,16 @@ module.exports = function(kbox) {
               '/src/config/drush/aliases.drushrc.php'
             ];
 
+            // Image name
             var image = 'kalabox/debian:stable';
 
-            var createOpts = kbox.util.docker.CreateOpts()
-              .env('APPDOMAIN', app.domain)
-              .bind(app.rootBind, '/src');
+            // Build create options
+            var createOpts = {};
 
-            var startOpts = {};
+            // Build start options
+            var startOpts = kbox.util.docker.StartOpts()
+              .bind(app.rootBind, '/src:rw')
+              .json();
 
             return kbox.engine.run(image, cmd, createOpts, startOpts);
 

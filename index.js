@@ -11,9 +11,10 @@ var PLUGIN_NAME = 'kalabox-plugin-drush';
 
 module.exports = function(kbox) {
 
-  var globalConfig = kbox.core.deps.lookup('globalConfig');
+  var globalConfig = kbox.core.deps.get('globalConfig');
   var events = kbox.core.events;
   var engine = kbox.engine;
+  var Promise = kbox.Promise;
 
   kbox.whenApp(function(app) {
 
@@ -37,41 +38,52 @@ module.exports = function(kbox) {
      * Runs a git command on the app data container
      **/
     var runDrushCMD = function(cmd, opts, done) {
+
       // Run the drush command in the correct directory in the container if the
       // user is somewhere inside the code directory on the host side.
       // @todo: consider if this is better in the actual engine.run command
       // vs here.
-      var workingDirExtra = '';
-      var cwd = process.cwd();
-      var codeRoot = app.config.codeRoot;
-      if (_.startsWith(cwd, codeRoot)) {
-        workingDirExtra = cwd.replace(codeRoot, '');
-      }
-      var codeDir = globalConfig.codeDir;
-      var workingDir = '/' + codeDir + workingDirExtra;
-      var drushVersion = (opts['drush-version'] === 'backdrush') ?
-        'backdrush' : 'drush' + opts['drush-version'];
 
-      engine.run(
-        'drush',
-        cmd,
-        {
-          WorkingDir: workingDir,
-          Env: [
-            'DRUSH_VERSION=' + drushVersion
-          ],
-          HostConfig: {
-            VolumesFrom: [app.dataContainerName]
-          }
-        },
-        {
-          Binds: [
-            app.config.homeBind + ':/ssh:rw',
-            app.rootBind + ':/src:rw'
-          ]
-        },
-        done
-      );
+      // Get current working directory.
+      var cwd = process.cwd();
+
+      // Get code root.
+      var codeRoot = app.config.codeRoot;
+
+      // Get the branch of current working directory.
+      var workingDirBranch = _.startsWith(cwd, codeRoot) ?
+        cwd.replace(codeRoot, '') :
+        '';
+
+      // Build container's working directory.
+      var workingDir = path.join('/', globalConfig.codeDir, workingDirBranch);
+
+      // Get drush version.
+      var drushVersion = (opts['drush-version'] === 'backdrush') ?
+        'backdrush' :
+        'drush' + opts['drush-version'];
+
+      // Image name.
+      var image = 'drush';
+
+      // Build create options.
+      var createOpts = kbox.util.docker.CreateOpts()
+        .workingDir(workingDir)
+        .env('DRUSH_VERSION', drushVersion)
+        .volumeFrom(app.dataContainerName)
+        .json();
+
+      // Build start options.
+      var startOpts = kbox.util.docker.StartOpts()
+        .bind(app.config.homeBind, '/ssh')
+        .bind(app.rootBind, '/src')
+        .json();
+
+      // Perform a container run.
+      return engine.run(image, cmd, createOpts, startOpts)
+      // Return.
+      .nodeify(done);
+
     };
 
     // Events
@@ -94,7 +106,9 @@ module.exports = function(kbox) {
         done();
       }
       else {
-        engine.inspect(component.containerId, function(err, data) {
+
+        kbox.engine.inspect(component.containerId)
+        .then(function(data) {
           var key = '3306/tcp';
           if (data && data.NetworkSettings.Ports[key]) {
             var port = data.NetworkSettings.Ports[key][0].HostPort;
@@ -105,30 +119,23 @@ module.exports = function(kbox) {
               '/src/config/drush/aliases.drushrc.php'
             ];
 
-            engine.once(
-              'kalabox/debian:stable',
-              ['/bin/bash'],
-              {
-                'Env': ['APPDOMAIN=' + app.domain],
-              },
-              {
-                Binds: [app.rootBind + ':/src:rw']
-              },
-              function(container, done) {
-                engine.queryData(container.id, cmd, function(err, data) {
-                  if (err) {
-                    done(err);
-                  } else {
-                    done();
-                  }
-                });
-              },
-              function(err) {
-                done(err);
-              }
-            );
+            // Image name
+            var image = 'kalabox/debian:stable';
+
+            // Build create options
+            var createOpts = {};
+
+            // Build start options
+            var startOpts = kbox.util.docker.StartOpts()
+              .bind(app.rootBind, '/src')
+              .json();
+
+            return kbox.engine.run(image, cmd, createOpts, startOpts);
+
           }
-        });
+        })
+        .nodeify(done);
+
       }
     });
 

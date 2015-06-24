@@ -9,10 +9,9 @@ A nice drush plugin you can add to your app so you can do lots of fun drush thin
 FROM kalabox/php-appserver:v0.7.0
 
 # Install dependencies
-# Install Composer
-# Install some drushes
 RUN apt-get install -y mysql-client postgresql-client-common sqlite
 
+# Install Composer and some drushes
 RUN \
   curl -sS https://getcomposer.org/installer | php && \
   mv composer.phar /usr/local/bin/composer && \
@@ -32,12 +31,19 @@ RUN \
 COPY kdrush /usr/local/bin/kdrush
 COPY ssh-config /root/.ssh/config
 
+# Set default php version
 ENV PHP_VERSION 5.4.40
 
+# Set up our drush root
 RUN \
   chmod +x /usr/local/bin/kdrush && \
-  mkdir -p /root/.ssh && \
+  mkdir -p /root/.ssh && mkdir -p /usr/share/drush/commands && \
   ln -s /src/config/drush /root/.drush
+
+# Install some extra goodies
+RUN \
+  cd /usr/share/drush/commands && \
+  curl -L "http://ftp.drupal.org/files/projects/registry_rebuild-7.x-2.2.tar.gz" | tar -zvx
 
 ENTRYPOINT ["/usr/local/bin/kdrush"]
 

@@ -127,7 +127,7 @@ module.exports = function(kbox) {
 
             // Build start options
             var startOpts = kbox.util.docker.StartOpts()
-              .bind(app.rootBind, '/src:rw')
+              .bind(app.rootBind, '/src')
               .json();
 
             return kbox.engine.run(image, cmd, createOpts, startOpts);

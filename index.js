@@ -51,12 +51,16 @@ module.exports = function(kbox) {
       var codeRoot = app.config.codeRoot;
 
       // Get the branch of current working directory.
-      var workingDirBranch = _.startsWith(cwd, codeRoot) ?
-        cwd.replace(codeRoot, '') :
-        '';
-
-      // Build container's working directory.
-      var workingDir = path.join('/', globalConfig.codeDir, workingDirBranch);
+      // Run the drush command in the correct directory in the container if the
+      // user is somewhere inside the code directory on the host side.
+      // @todo: consider if this is better in the actual engine.run command
+      // vs here.
+      var workingDirExtra = '';
+      if (_.startsWith(cwd, codeRoot)) {
+        workingDirExtra = cwd.replace(codeRoot, '');
+      }
+      var codeDir = globalConfig.codeDir;
+      var workingDir = '/' + codeDir + workingDirExtra;
 
       // Get drush version.
       var drushVersion = (opts['drush-version'] === 'backdrush') ?

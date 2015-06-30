@@ -6,7 +6,7 @@ A nice drush plugin you can add to your app so you can do lots of fun drush thin
 ```
 # docker build -t kalabox/drush .
 
-FROM kalabox/php-appserver:v0.7.0
+FROM kalabox/php-appserver:v0.9.0
 
 # Install dependencies
 RUN apt-get install -y mysql-client postgresql-client-common sqlite

@@ -5,7 +5,7 @@ FROM kalabox/php-appserver:v0.9.0
 # Install dependencies
 RUN \
   apt-get -y update && \
-  apt-get -y install libxslt1 php5-curl mysql-client postgresql-client-common sqlite
+  apt-get -y install php5-curl mysql-client postgresql-client-common sqlite
 
 # Install Composer and some drushes
 RUN \

@@ -16,7 +16,7 @@ module.exports = function(kbox) {
   var engine = kbox.engine;
   var Promise = kbox.Promise;
 
-  kbox.whenApp(function(app) {
+  kbox.ifApp(function(app) {
 
     // Grab the clients
     var Drush = require('./lib/drush.js');

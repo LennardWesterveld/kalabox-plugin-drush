@@ -6,7 +6,7 @@ A nice drush plugin you can add to your app so you can do lots of fun drush thin
 ```
 # docker build -t kalabox/drush .
 
-FROM kalabox/php-appserver:v0.9.0
+FROM kalabox/php-appserver:v0.10.0
 
 # Install dependencies
 RUN apt-get install -y mysql-client postgresql-client-common sqlite
@@ -31,8 +31,10 @@ RUN \
 COPY kdrush /usr/local/bin/kdrush
 COPY ssh-config /root/.ssh/config
 
-# Set default php version
+# Set default php version and other things
 ENV PHP_VERSION 5.4.40
+ENV DRUSH_VERSION drush7
+ENV SSH_KEY id_rsa
 
 # Set up our drush root
 RUN \

@@ -79,6 +79,7 @@ module.exports = function(kbox) {
     // drush wrapper: kbox drush COMMAND
     kbox.tasks.add(function(task) {
       task.path = [app.name, 'drush'];
+      task.category = 'appCmd';
       task.description = 'Run drush commands.';
       task.kind = 'delegate';
       task.options.push(taskOpts.drushVersion);

@@ -1,15 +1,21 @@
 'use strict';
 
-// Modules
-var path = require('path');
-var fs = require('fs');
-var _ = require('lodash');
-var taskOpts = require('./lib/tasks.js');
-
-// "Constants"
-var PLUGIN_NAME = 'kalabox-plugin-drush';
-
 module.exports = function(kbox) {
+
+  // Modules
+  var path = require('path');
+  var fs = require('fs');
+  var _ = require('lodash');
+
+  // "Constants"
+  var PLUGIN_NAME = 'kalabox-plugin-drush';
+
+  // Tasks
+  var taskOpts = {
+    name: 'drush-version',
+    kind: 'string',
+    description: 'The version of drush that you want.'
+  };
 
   var globalConfig = kbox.core.deps.get('globalConfig');
   var events = kbox.core.events;

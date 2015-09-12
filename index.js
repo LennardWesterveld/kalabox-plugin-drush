@@ -88,7 +88,7 @@ module.exports = function(kbox) {
       task.category = 'appCmd';
       task.description = 'Run drush commands.';
       task.kind = 'delegate';
-      task.options.push(taskOpts.drushVersion);
+      task.options.push(taskOpts);
       task.func = function(done) {
         var opts = drush.getOpts(this.options);
         var cmd = this.payload;
